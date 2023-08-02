@@ -1,0 +1,129 @@
+############################################
+#
+# For the addition of some basic instructions
+#
+############################################
+# Code confusion compression ratio, between 0 and 7, the default is 5, generally do not modify
+-optimizationpasses 5
+
+# Do not use case mixing when mixing, the mixed class name is lowercase
+-dontusemixedcaseclassnames
+
+# Specifies not to ignore classes in non-public libraries
+-dontskipnonpubliclibraryclasses
+
+# This sentence can confuse our project to generate a mapping file
+# Contains the mapping relationship of class name -> obfuscated class name
+-verbose
+
+# Specifies not to ignore class members of non-public libraries
+-dontskipnonpubliclibraryclassmembers
+
+# No pre-verification, preverify is one of the four steps of proguard, Android does not need preverify, removing this step can speed up the confusion.
+-dontpreverify
+
+# Keep Annotation from confusion
+-keepattributes *Annotation*,InnerClasses
+
+# avoid confusing generics
+-keepattributes Signature
+
+# Preserve the line number of the code when an exception is thrown
+-keepattributes SourceFile,LineNumberTable
+
+# Specify the algorithm used for obfuscation, and the following parameter is a filter
+# This filter is the algorithm recommended by Google, generally do not change
+-optimizations !code/simplification/cast,!field/*,!class/merging/*
+
+
+############################################
+#
+# Some public parts that need to be kept in Android development
+#
+############################################
+
+# Keep the four major components we use, custom Application, etc. These classes will not be confused
+# Because these subclasses may be called externally
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Appliction
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+-keep public class * extends android.app.backup.BackupAgentHelper
+-keep public class * extends android.preference.Preference
+-keep public class * extends android.view.View
+-keep public class com.android.vending.licensing.ILicensingService
+
+
+# Keep all classes and their inner classes under support
+-keep class android.support.** {*;}
+
+# keep inherited
+-keep public class * extends android.support.v4.**
+-keep public class * extends android.support.v7.**
+-keep public class * extends android.support.annotation.**
+
+# Reserve the resources under R
+-keep class **.R$* {*;}
+
+# Keep local native methods from being confused
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# The method parameter retained in the Activity is the method of the view,
+# In this way, the onClick we wrote in the layout will not be affected
+-keepclassmembers class * extends android.app.Activity{
+    public void *(android.view.View);
+}
+
+# Keep enumeration classes from being confused
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# Keep our custom controls (inherited from View) from being confused
+-keep public class * extends android.view.View{
+    *** get*();
+    void set*(***);
+    public <init>(android.content.Context);
+    public <init>(android.content.Context, android.util.AttributeSet);
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+}
+
+# Keep the Parcelable serialization class from being confused
+-keep class * implements android.os.Parcelable {
+    public static final android.os.Parcelable$Creator *;
+}
+
+# Keep Serializable serialized classes from being confused
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    !static !transient <fields>;
+    !private <fields>;
+    !private <methods>;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
+
+# For onXXEvent and **On*Listener with callback functions, they cannot be confused
+-keepclassmembers class * {
+    void *(**On*Event);
+    void *(**On*Listener);
+}
+
+# webView processing, webView is not used in the project and can be ignored
+-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+    public *;
+}
+-keepclassmembers class * extends android.webkit.webViewClient {
+    public void *(android.webkit.WebView, java.lang.String, android.graphics.Bitmap);
+    public boolean *(android.webkit.WebView, java.lang.String);
+}
+-keepclassmembers class * extends android.webkit.webViewClient {
+    public void *(android.webkit.webView, jav.lang.String);
+}
